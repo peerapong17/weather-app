@@ -1,82 +1,67 @@
+import React, { useState } from 'react';
 import Head from 'next/head'
+import { async } from 'regenerator-runtime';
 
-export default function Home() {
+export default function Home({ weatherData }) {
+  const [input, setInput] = useState('')
+  const [data, setData] = useState()
+
+  const dateBuilder = (d) => {
+    let months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+    let days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+
+    let day = days[d.getDay()];
+    let date = d.getDate();
+    let month = months[d.getMonth()];
+    let year = d.getFullYear();
+
+    return `${day} ${date} ${month} ${year}`
+  }
+
+  const fetchData = async (e) => {
+    e.preventDefault()
+    const res = await fetch(`https://api.openweathermap.org/data/2.5/weather?q=${input}&appid=ca0873a42d04802307eab7bfa6d10f75&units=metric`)
+    const data = await res.json()
+    setData(data)
+    setInput('')
+  }
+
   return (
     <div className="flex flex-col items-center justify-center min-h-screen py-2">
       <Head>
         <title>Create Next App</title>
         <link rel="icon" href="/favicon.ico" />
       </Head>
+      <form className="mb-30" onSubmit={(e) => fetchData(e)}>
+        <input value={input} onChange={(e) => setInput(e.target.value)} autoFocus className="px-8 py-3 mr-3 border-4 border-indigo-200 rounded-md focus:border-indigo-700 hover:border-indigo-300 outline-none" type="text" />
+        <input value="Search" className="bg-indigo-300 hover:bg-indigo-400 active:bg-indigo-500 px-8 py-4 rounded-md cursor-pointer" type="submit" />
+        <div className="mt-4 mb-20 date text-2xl font-mono text-center">{dateBuilder(new Date())}</div>
+      </form>
 
-      <main className="flex flex-col items-center justify-center w-full flex-1 px-20 text-center">
-        <h1 className="text-6xl font-bold">
-          Welcome to{' '}
-          <a className="text-blue-600" href="https://nextjs.org">
-            Next.js!
-          </a>
-        </h1>
 
-        <p className="mt-3 text-2xl">
-          Get started by editing{' '}
-          <code className="p-3 font-mono text-lg bg-gray-100 rounded-md">
-            pages/index.js
-          </code>
-        </p>
-
-        <div className="flex flex-wrap items-center justify-around max-w-4xl mt-6 sm:w-full">
-          <a
-            href="https://nextjs.org/docs"
-            className="p-6 mt-6 text-left border w-96 rounded-xl hover:text-blue-600 focus:text-blue-600"
-          >
-            <h3 className="text-2xl font-bold">Documentation &rarr;</h3>
-            <p className="mt-4 text-xl">
-              Find in-depth information about Next.js features and API.
-            </p>
-          </a>
-
-          <a
-            href="https://nextjs.org/learn"
-            className="p-6 mt-6 text-left border w-96 rounded-xl hover:text-blue-600 focus:text-blue-600"
-          >
-            <h3 className="text-2xl font-bold">Learn &rarr;</h3>
-            <p className="mt-4 text-xl">
-              Learn about Next.js in an interactive course with quizzes!
-            </p>
-          </a>
-
-          <a
-            href="https://github.com/vercel/next.js/tree/master/examples"
-            className="p-6 mt-6 text-left border w-96 rounded-xl hover:text-blue-600 focus:text-blue-600"
-          >
-            <h3 className="text-2xl font-bold">Examples &rarr;</h3>
-            <p className="mt-4 text-xl">
-              Discover and deploy boilerplate example Next.js projects.
-            </p>
-          </a>
-
-          <a
-            href="https://vercel.com/import?filter=next.js&utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-            className="p-6 mt-6 text-left border w-96 rounded-xl hover:text-blue-600 focus:text-blue-600"
-          >
-            <h3 className="text-2xl font-bold">Deploy &rarr;</h3>
-            <p className="mt-4 text-xl">
-              Instantly deploy your Next.js site to a public URL with Vercel.
-            </p>
-          </a>
+      <div className="flex flex-col items-center">
+        
+        <div className="mb-12 text-5xl font-sans font-semibold tracking-wide">{data ? data.name : weatherData.name}</div>
+        <div className="px-24 py-14 bg-blue-100 rounded-md shadow-xl">
+          <div className="text-6xl font-mono font-bold">{data ? Math.round(data.main.temp) : Math.round(weatherData.main.temp)}°C</div>
         </div>
-      </main>
+      </div>
 
-      <footer className="flex items-center justify-center w-full h-24 border-t">
-        <a
-          className="flex items-center justify-center"
-          href="https://vercel.com?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Powered by{' '}
-          <img src="/vercel.svg" alt="Vercel Logo" className="h-4 ml-2" />
-        </a>
-      </footer>
+
+
+
     </div>
   )
+}
+
+export const getStaticProps = async () => {
+  const res = await fetch(`https://api.openweathermap.org/data/2.5/weather?q=bangkok&appid=${process.env.API_KEY}&units=metric`)
+  const data = await res.json()
+  console.log(data)
+
+  return {
+    props: {
+      weatherData: data
+    }
+  }
 }
